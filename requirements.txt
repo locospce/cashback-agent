@@ -2,7 +2,5 @@ streamlit
 pandas
 openpyxl
 openai
-plotly
-lightgbm
 numpy
 python-dotenv
