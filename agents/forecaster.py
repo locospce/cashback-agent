@@ -7,7 +7,7 @@ import numpy as np
 _BASE_WEIGHTS = np.array([0.2, 0.3, 0.5])
 
 SYSTEM_PROMPT = (
-    "Ты финансовый аналитик кэшбек-программы банка. "
+    "Ты финансовый аналитик кэшбэк-программы банка. "
     "На основе данных о прошлых кампаниях спрогнозируй оборот следующей. "
     "Ответь строго в формате JSON — только JSON, без лишнего текста:\n"
     '{"value": <целое число в рублях>, "reasoning": "<2–3 предложения на русском>"}'
@@ -31,7 +31,7 @@ def _weighted_forecast(amounts: list[float]) -> float:
 
 
 def _build_llm_prompt(results: list[dict], params: list[dict]) -> str:
-    lines = ["Данные по прошлым кэшбек-кампаниям:\n"]
+    lines = ["Данные по прошлым кэшбэк-кампаниям:\n"]
     for i, (r, p) in enumerate(zip(results, params), 1):
         m = r["metrics"]
         lines += [

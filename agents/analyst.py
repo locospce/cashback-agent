@@ -4,14 +4,14 @@ import pandas as pd
 
 COLUMN_KEYWORDS = {
     "amount":   ["summa", "сумма", "amount", "sum", "price"],
-    "cashback": ["cashback", "кэшбек", "кешбек", "cb", "cashbackkb"],
+    "cashback": ["cashback", "кэшбэк", "кэшбек", "кешбэк", "кешбек", "cb", "cashbackkb"],
     "client":   ["clnt", "client", "клиент", "customer"],
     "date":     ["date", "дата", "opdate"],
     "city":     ["city", "город", "mrccity"],
 }
 
 SYSTEM_PROMPT = (
-    "Ты аналитик кэшбек-программы банка. "
+    "Ты аналитик кэшбэк-программы банка. "
     "Если данные по одной кампании — напиши вывод (3–4 предложения): что работало хорошо, "
     "на что обратить внимание, есть ли что-то необычное. "
     "Если данных несколько — сравни кампании: что изменилось, есть ли тренд, "
@@ -64,7 +64,7 @@ def detect_params(df: pd.DataFrame) -> dict:
     else:
         old_pct, new_pct = defaults["old_pct"], defaults["new_pct"]
 
-    # ── Кэп: ищем кластер в верхнем хвосте распределения кэшбека ────────────
+    # ── Кэп: ищем кластер в верхнем хвосте распределения кэшбэка ────────────
     cb  = clean[col_cashback]
     p90 = cb.quantile(0.90)
     top = cb[cb >= p90 * 0.95]
@@ -93,15 +93,16 @@ def _build_prompt(metrics: dict, params: dict) -> str:
     m = metrics
     p = params
 
+    seg = p.get("segment_type", "Оба сегмента")
     lines = [
-        f"Кампания: {p['name']}",
+        f"Кампания: {p['name']} (тип: {seg})",
         f"Настройки: новые клиенты {p['new_pct']}%, действующие {p['old_pct']}%, "
         f"кэп {p['cap']} руб ({p['cap_type']})",
         "",
         f"Транзакций: {m['total_transactions']}",
         f"Оборот: {m['total_amount']:,.0f} руб",
         f"Кэшбек выплачен: {m['total_cashback']:,.0f} руб",
-        f"Нагрузка кэшбека на оборот: {m['cashback_load_pct']:.1f}%",
+        f"Нагрузка кэшбэка на оборот: {m['cashback_load_pct']:.1f}%",
     ]
 
     if m["unique_clients"] is not None:
@@ -119,7 +120,7 @@ def _build_prompt(metrics: dict, params: dict) -> str:
     if m["top_cities"]:
         lines.append("\nТоп-3 города по обороту:")
         for city, amount, cashback in m["top_cities"]:
-            lines.append(f"  {city}: {amount:,.0f} руб (кэшбек {cashback:,.0f} руб)")
+            lines.append(f"  {city}: {amount:,.0f} руб (кэшбэк {cashback:,.0f} руб)")
 
     if m["days_active"] is not None:
         lines.append(f"\nАктивных дней: {m['days_active']}")
@@ -140,7 +141,7 @@ def _calc_metrics(df: pd.DataFrame, params: dict) -> dict:
 
     if not col_amount or not col_cashback:
         raise ValueError(
-            f"Не найдены обязательные колонки (сумма/кэшбек). "
+            f"Не найдены обязательные колонки (сумма/кэшбэк). "
             f"Колонки в файле: {list(df.columns)}"
         )
 
@@ -176,7 +177,7 @@ def _calc_metrics(df: pd.DataFrame, params: dict) -> dict:
 
     days_active = best_day_date = best_day_amount = None
     if col_date:
-        dates = pd.to_datetime(df[col_date], errors="coerce").dt.date
+        dates = pd.to_datetime(df[col_date], errors="coerce", dayfirst=True).dt.date
         daily = df.groupby(dates)[col_amount].sum()
         days_active     = int(daily.count())
         best_day_date   = str(daily.idxmax())
@@ -209,7 +210,7 @@ def _build_comparative_prompt(metrics_list: list[dict], params_list: list[dict])
     lines = [f"Сравнительный анализ {len(metrics_list)} кампаний:\n"]
     for i, (m, p) in enumerate(zip(metrics_list, params_list), 1):
         lines += [
-            f"Кампания {i}: {p['name']}",
+            f"Кампания {i}: {p['name']} (тип: {p.get('segment_type', 'Оба сегмента')})",
             f"  Оборот: {m['total_amount']:,.0f} руб",
             f"  Кэшбек: {m['total_cashback']:,.0f} руб ({m['cashback_load_pct']:.1f}%)",
             f"  Транзакций: {m['total_transactions']}",

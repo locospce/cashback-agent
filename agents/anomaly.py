@@ -17,7 +17,7 @@ def run_anomaly(df: pd.DataFrame, params: dict) -> list[dict]:
     cap       = params["cap"]
     max_rate  = max(params["new_pct"], params["old_pct"]) / 100
 
-    # 1. Переплата: кэшбек > сумма * max_rate * 1.1
+    # 1. Переплата: кэшбэк > сумма * max_rate * 1.1
     overpaid     = df[df[col_cashback] > df[col_amount] * max_rate * 1.1]
     overpaid_n   = len(overpaid)
     if overpaid_n > 0:
@@ -25,10 +25,10 @@ def run_anomaly(df: pd.DataFrame, params: dict) -> list[dict]:
         excess_amount  = (overpaid[col_cashback] - overpaid[col_amount] * max_rate).sum()
         severity       = "высокая" if overpaid_pct > 5 else ("средняя" if overpaid_pct > 1 else "низкая")
         anomalies.append({
-            "type":           "Переплата кэшбека",
+            "type":           "Переплата кэшбэка",
             "severity":       severity,
             "description":    (
-                f"{overpaid_n} транзакций ({overpaid_pct:.1f}%) с кэшбеком выше "
+                f"{overpaid_n} транзакций ({overpaid_pct:.1f}%) с кэшбэком выше "
                 f"{params['new_pct']}% + 10%. Избыточная выплата: ~{excess_amount:,.0f} руб."
             ),
             "recommendation": (
@@ -58,7 +58,7 @@ def run_anomaly(df: pd.DataFrame, params: dict) -> list[dict]:
     # 3. Дни с резким изменением оборота (> ±50% от среднего)
     if col_date:
         tmp         = df.copy()
-        tmp["_d"]   = pd.to_datetime(tmp[col_date], errors="coerce").dt.date
+        tmp["_d"]   = pd.to_datetime(tmp[col_date], errors="coerce", dayfirst=True).dt.date
         daily       = tmp.groupby("_d")[col_amount].sum()
 
         if len(daily) > 1:
@@ -111,7 +111,7 @@ def run_anomaly(df: pd.DataFrame, params: dict) -> list[dict]:
             "severity":       severity,
             "description":    (
                 f"{capped_pct:.1f}% транзакций достигли кэпа {cap:,.0f} руб. "
-                f"Клиенты систематически не дополучают ожидаемый кэшбек."
+                f"Клиенты систематически не дополучают ожидаемый кэшбэк."
             ),
             "recommendation": (
                 f"Рассмотреть увеличение кэпа — текущий порог занижен для аудитории кампании."
@@ -152,7 +152,7 @@ if __name__ == "__main__":
     test_params = {"name": "Тест", "new_pct": 15, "old_pct": 10, "cap": 4500, "cap_type": "на транзакцию"}
     result = run_anomaly(df_test, test_params)
 
-    assert any(a["type"] == "Переплата кэшбека"      for a in result), "переплата не найдена"
+    assert any(a["type"] == "Переплата кэшбэка"      for a in result), "переплата не найдена"
     assert any(a["type"] == "Подозрительные клиенты" for a in result), "фрод не найден"
     assert any(a["type"] == "Падение оборота"         for a in result), "падение не найдено"
 
