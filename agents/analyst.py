@@ -267,7 +267,7 @@ def run_analyst(dfs: list[pd.DataFrame], params_list: list[dict], client) -> dic
         prompt = _build_comparative_prompt(metrics_list, params_list)
 
     response = client.chat.completions.create(
-        model="google/gemini-2.0-flash-001",
+        model="google/gemini-2.5-flash",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user",   "content": prompt},

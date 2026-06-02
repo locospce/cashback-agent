@@ -113,7 +113,7 @@ def run_segmentor(results: list[dict], params: list[dict], client) -> dict:
     prompt = _build_prompt(agg, results, params)
 
     response = client.chat.completions.create(
-        model="google/gemini-2.0-flash-001",
+        model="google/gemini-2.5-flash",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user",   "content": prompt},

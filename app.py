@@ -480,7 +480,7 @@ else:
         with st.chat_message("assistant"):
             with st.spinner("Анализирую..."):
                 resp = _client.chat.completions.create(
-                    model="google/gemini-2.0-flash-001",
+                    model="google/gemini-2.5-flash",
                     messages=[
                         {"role": "system", "content": _CHAT_SYSTEM.format(
                             context=st.session_state["chat_context"]

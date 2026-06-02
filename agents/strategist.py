@@ -126,7 +126,7 @@ def run_strategist(
     prompt = _build_prompt(analyst_results, forecast, segmentor_result, anomalies, params)
 
     response = client.chat.completions.create(
-        model="google/gemini-2.0-flash-001",
+        model="google/gemini-2.5-flash",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user",   "content": prompt},
